@@ -36,7 +36,7 @@ class ZombieRecordFinder :
         zombies = []
         
         for i in range(partitions) : 
-            f = open(f"{self.config['DEFAULT']['Data']}/{self.start.year}-{self.start.month}-zombieDetector-{i}.txt", "r")
+            f = open(f"{self.config['DEFAULT']['Data']}/{self.start.year}-{self.start.month}-zombieDetector-{i}-filtered.txt", "r")
             lines = f.readlines()
             for l in lines :
                 _, prefix, time, _, _ = map(lambda x: x.strip(), l.split("|") ) 
