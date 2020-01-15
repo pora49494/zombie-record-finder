@@ -41,10 +41,9 @@ class ZombieRecordFinder :
             for l in lines :
                 _, prefix, time, _, _ = map(lambda x: x.strip(), l.split("|") ) 
                 date_time_obj = datetime.datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
-                zombies.append( ( prefix, dt2ts(date_time_obj) ) )
+                zombies.append( ( dt2ts(date_time_obj), prefix ) )
             f.close()
-
-        return zombies 
+        return sorted(zombies) 
 
     def get_stream(self) :
         logging.debug(f"[ZombieRecordFinder-{self.collector}] try to create BGPstream")
@@ -52,8 +51,8 @@ class ZombieRecordFinder :
         stream = BGPStream()
         stream.add_interval_filter( dt2ts(self.start), dt2ts(self.end) )
         stream.add_filter('collector', self.collector)
-        for z, _ in self.zombies :
-            stream.add_filter('prefix-exact', z)
+        for _, p in self.zombies :
+            stream.add_filter('prefix-exact', p)
         return stream
 
     def analyze_element (self, path, elem, ts) :
@@ -77,7 +76,7 @@ class ZombieRecordFinder :
     
     def prep_path (self) :
         path = dict()
-        for p, _ in self.zombies :
+        for _, p in self.zombies :
             path[p] =  defaultdict(dict)
         return path
 
@@ -98,8 +97,8 @@ class ZombieRecordFinder :
                     continue
                 
                 recordTimeStamp = int(rec.time)
-                while self.zombies and self.zombies[-1][1] < recordTimeStamp :
-                    prefix, ts = self.zombies.pop()
+                while self.zombies and self.zombies[-1][0] < recordTimeStamp :
+                    ts, prefix = self.zombies.pop()
                     dump_path[ f"{prefix}|{ts}" ] = path[prefix]                     
                     
                 elem = rec.get_next_elem()
