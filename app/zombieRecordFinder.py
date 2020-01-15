@@ -67,9 +67,12 @@ class ZombieRecordFinder :
         
         if prefix in path :
             path[prefix][peer_address]["status"] = elem_type
-             
+            
             if peer_asn not in belong_to_asn[peer_address] :
-                path[prefix][peer_address]["peer_asn"] = path[prefix][peer_address]["peer_asn"] + " " + peer_asn
+                if "peer_asn" not in path[prefix][peer_address] : 
+                    path[prefix][peer_address]["peer_asn"] = peer_asn
+                else :
+                    path[prefix][peer_address]["peer_asn"] = path[prefix][peer_address]["peer_asn"] + " " + peer_asn
                 belong_to_asn[peer_address].add(peer_asn)
 
             path[prefix][peer_address]["ts"] = ts
