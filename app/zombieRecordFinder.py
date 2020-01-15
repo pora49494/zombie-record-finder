@@ -2,6 +2,7 @@ import configparser
 import datetime
 import logging
 import json
+import copy
 import argparse
 from collections import defaultdict
 from _pybgpstream import BGPStream, BGPRecord
@@ -111,7 +112,7 @@ class ZombieRecordFinder :
                 recordTimeStamp = int(rec.time)
                 while self.zombies and self.zombies[-1][0] < recordTimeStamp :
                     ts, prefix = self.zombies.pop()
-                    dump_path[ f"{prefix}|{ts}" ] = path[prefix]                     
+                    dump_path[ f"{prefix}|{ts}" ] = copy.deepcopy(path[prefix])
                     
                 elem = rec.get_next_elem()
                 while(elem):
