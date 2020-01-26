@@ -56,7 +56,7 @@ class ZombieRecordFinder :
             stream.add_filter('prefix-exact', p)
         return stream
 
-    def analyze_element (self, path, belong_to_asn, elem, ts) :
+    def analyze_element (self, path, elem, ts) :
         
         elem_type = elem.type
         if elem_type not in {'R', 'A', 'W'} :
@@ -68,21 +68,11 @@ class ZombieRecordFinder :
         
         if prefix in path :
             path[prefix][peer_address]["status"] = elem_type
-            
-            if peer_asn not in belong_to_asn[peer_address] :
-                if "peer_asn" not in path[prefix][peer_address] : 
-                    path[prefix][peer_address]["peer_asn"] = peer_asn
-                else :
-                    path[prefix][peer_address]["peer_asn"] = path[prefix][peer_address]["peer_asn"] + " " + peer_asn
-                belong_to_asn[peer_address].add(peer_asn)
-
+            path[prefix][peer_address]["peer_asn"] = peer_asn
             path[prefix][peer_address]["ts"] = ts
 
             if elem_type == "R" or elem_type == "A" :
                 path[prefix][peer_address]["as_path"] = elem.fields['as-path']
-            elif elem_type == "W" :
-                path[prefix][peer_address]["as_path"] = ""
-
 
         return    
     
@@ -96,7 +86,6 @@ class ZombieRecordFinder :
         logging.info(f"[ZombieRecordFinder-{self.collector}] starting path_finder()")
 
         path = self.prep_path()
-        belong_to_asn = defaultdict(set)
         dump_path = dict()
 
         stream = self.get_stream()
@@ -116,7 +105,7 @@ class ZombieRecordFinder :
                     
                 elem = rec.get_next_elem()
                 while(elem):
-                    self.analyze_element(path, belong_to_asn, elem, recordTimeStamp)
+                    self.analyze_element(path, elem, recordTimeStamp)
                     elem = rec.get_next_elem()
 
         except Exception as e :
