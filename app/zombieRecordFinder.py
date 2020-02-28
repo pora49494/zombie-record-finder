@@ -18,8 +18,9 @@ class ZombieRecordFinder :
         self.config = configparser.ConfigParser()
         self.config.read('/app/config.ini')
 
-        self.start = datetime.datetime(date.year, date.month, 10)
-        self.end = datetime.datetime(date.year, date.month, 20)
+        self.year = date.year
+        self.month = date.month
+
         self.collector = collector
 
         FORMAT = '%(asctime)s ZombieRecordFinder %(message)s'
@@ -42,7 +43,7 @@ class ZombieRecordFinder :
         zombies = []
         changing = []
         
-        f = open(f"{self.config['DEFAULT']['Data']}/{self.start.year}-{self.start.month}-zombies-proof.txt", "r")
+        f = open(f"{self.config['DEFAULT']['Data']}/{self.year}-{self.month}-zombies-proof.txt", "r")
         lines = f.readlines()
         for l in lines :
             ts, prefix, _, _ = map(lambda x: x.strip(), l.split("|") ) 
@@ -57,9 +58,12 @@ class ZombieRecordFinder :
 
     def get_stream(self) :
         logging.debug(f"[ZombieRecordFinder-{self.collector}] try to create BGPstream")
-         
+        
+        _start = datetime.datetime(self.year, self.month, 10)
+        _end = datetime.datetime(self.year, self.month, 20)
+
         stream = BGPStream()
-        stream.add_interval_filter( dt2ts(self.start), dt2ts(self.end) )
+        stream.add_interval_filter( dt2ts(_start), dt2ts(_end) )
         stream.add_filter('collector', self.collector)
         for _, p in self.zombies :
             stream.add_filter('prefix-exact', p)
@@ -122,7 +126,7 @@ class ZombieRecordFinder :
                     
                     if prefix in self.watching_prefix :
                         self.watching_prefix.remove(prefix)
-                        f = open(f"{result_path}/{self.start.year}-{self.start.month}-changing-{self.collector}.txt", "a+")
+                        f = open(f"{result_path}/{self.year}-{self.month}-changing-{self.collector}.txt", "a+")
                         data = ",".join(self.record[prefix]) 
                         f.write( f"{prefix} {ts} ? {data} \n" )
                         f.close()
@@ -140,7 +144,7 @@ class ZombieRecordFinder :
             logging.error(f"[ZombieRecordFinder-{self.collector}] exit with error : {e}")
         
         finally :
-            with open(f"{result_path}/{self.start.year}-{self.start.month}-zombie-record-finder-{self.collector}.json", 'w') as fp:
+            with open(f"{result_path}/{self.year}-{self.month}-zombie-record-finder-{self.collector}.json", 'w') as fp:
                 json.dump(dump_path, fp)
         
 if __name__ == '__main__':
