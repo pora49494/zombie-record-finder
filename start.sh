@@ -24,7 +24,16 @@ do
         pora/bgpstream:record_finder \
         /app/zombieRecordFinder.py -c "rrc${i}" -d "${HEADER}"
     
-    done
+    month=$(echo $MONTH_ENV | sed 's/^0*//')
+    CUR=$(pwd)
+
+    cd /${CUR}/result
+    tar -czf ${YEAR_ENV}-${month}-record.tar.bz ${YEAR_ENV}-${month}-*
+    mv ${YEAR_ENV}-${month}-record.tar.bz ${CUR}/archive/
+    rm ${YEAR_ENV}-${month}-zombie-record-finder-*.json
+
+    cd ${CUR}
+
 done
 
 # python3 /app/zombieRecordFinder.py -c rrc00 -d 2019_08
