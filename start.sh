@@ -26,6 +26,16 @@ do
     
     done
     
+    echo "[CHECK]: check container's status"
+    while :
+    do
+        if [[ -z $(docker ps -qf "name=${TOPIC_HEADER}_") ]]; then
+            break
+        fi
+        sleep 300
+    done 
+
+
     month=$(echo $MONTH_ENV | sed 's/^0*//')
     CUR=$(pwd)
 
