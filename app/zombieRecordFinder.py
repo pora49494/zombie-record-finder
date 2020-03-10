@@ -29,19 +29,14 @@ class ZombieRecordFinder :
             level=logging.DEBUG, datefmt='%Y-%m-%d %H:%M:%S'
         )
 
-        self.zombies, self.changing = self.read_zombies()
-        self.watching_prefix = set()
-
+        self.zombies = self.read_zombies()
+        
         self.path = self.prep_path()
         self.record = defaultdict(list)
 
     def read_zombies (self) :
         logging.debug(f"[ZombieRecordFinder-{self.collector}] start reading zombie data")
-
-        quarantine = int(self.config['DEFAULT']['Quarantine'])
-        
         zombies = []
-        changing = []
         
         f = open(f"{self.config['DEFAULT']['Data']}/{self.year}-{self.month}-zombies-proof.txt", "r")
         lines = f.readlines()
@@ -51,10 +46,8 @@ class ZombieRecordFinder :
         f.close()
     
         zombies.sort(reverse=True)
-        for ts, prefix in zombies :
-            changing.append( (ts-quarantine, prefix) )
         
-        return zombies, changing
+        return zombies
 
     def get_stream(self) :
         logging.debug(f"[ZombieRecordFinder-{self.collector}] try to create BGPstream")
@@ -79,9 +72,6 @@ class ZombieRecordFinder :
         peer_asn = elem.peer_asn
         peer_address = elem.peer_address    
         
-        if prefix in self.watching_prefix : 
-            self.record[prefix].append( f"{ts}|{elem_type}|{peer_address}|{peer_asn}" )
-
         if prefix in self.path :
             self.path[prefix][peer_address]["status"] = elem_type
             self.path[prefix][peer_address]["peer_asn"] = peer_asn
@@ -116,25 +106,11 @@ class ZombieRecordFinder :
                     continue
                 
                 recordTimeStamp = int(rec.time)
-                while self.changing and self.changing[-1][0] < recordTimeStamp :
-                    _, prefix = self.changing.pop()
-                    self.watching_prefix.add(prefix)
                 
                 while self.zombies and self.zombies[-1][0] < recordTimeStamp :
                     ts, prefix = self.zombies.pop()
                     dump_path[ f"{prefix}|{ts}" ] = copy.deepcopy(self.path[prefix])
                     
-                    if prefix in self.watching_prefix :
-                        self.watching_prefix.remove(prefix)
-                        f = open(f"{result_path}/{self.year}-{self.month}-changing-{self.collector}.txt", "a+")
-                        data = ",".join(self.record[prefix]) 
-                        f.write( f"{prefix} {ts} ? {data} \n" )
-                        f.close()
-                        del data 
-                        del self.record[prefix]
-                    else :
-                        logging.warning(f"[ZombieRecordFinder-{self.collector}] trying to remove unwatched prefix {prefix}")
-
                 elem = rec.get_next_elem()
                 while(elem):
                     self.analyze_element( elem, recordTimeStamp)

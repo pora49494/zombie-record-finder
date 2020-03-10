@@ -14,7 +14,7 @@ do
             continue
         fi 
     
-        docker run -d -it \
+    docker run -d --rm -it \
         --name "${HEADER}_zombie_record_finder_rrc${i}" \
         -v "${PWD}"/app/zombieRecordFinder.py:/app/zombieRecordFinder.py \
         -v "${PWD}"/data:/app/data \
