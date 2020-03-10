@@ -14,7 +14,7 @@ do
             continue
         fi 
     
-    docker run -d --rm -it \
+        docker run -d --rm -it \
         --name "${HEADER}_zombie_record_finder_rrc${i}" \
         -v "${PWD}"/app/zombieRecordFinder.py:/app/zombieRecordFinder.py \
         -v "${PWD}"/data:/app/data \
@@ -23,6 +23,8 @@ do
         -v "${PWD}"/config.ini:/app/config.ini \
         pora/bgpstream:record_finder \
         /app/zombieRecordFinder.py -c "rrc${i}" -d "${HEADER}"
+    
+    done
     
     month=$(echo $MONTH_ENV | sed 's/^0*//')
     CUR=$(pwd)
