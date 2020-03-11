@@ -29,7 +29,7 @@ do
     echo "[CHECK]: check container's status"
     while :
     do
-        if [[ -z $(docker ps -qf "name=${TOPIC_HEADER}_") ]]; then
+        if [[ -z $(docker ps -qf "name=${HEADER}_") ]]; then
             break
         fi
         sleep 300
